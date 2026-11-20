@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090d18"><title>Pump Radar — Early Launch Monitor</title>
+<style>
+:root{color-scheme:dark;--bg:#090d18;--panel:#111a2b;--line:#24314a;--muted:#91a0b8;--green:#45e0a0;--blue:#7aa7ff;--red:#ff7185}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#14213a 0,#090d18 55%);color:#edf3ff;font:15px system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:22px max(18px,calc((100% - 1100px)/2));border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.brand{font-size:22px;font-weight:800;letter-spacing:.08em}.brand span{color:var(--green)}.sub{color:var(--muted);font-size:12px;margin-top:3px}
+.status{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}.dot{width:9px;height:9px;border-radius:50%;background:#68758b}.dot.live{background:var(--green);box-shadow:0 0 12px var(--green)}.dot.bad{background:var(--red)}
+main{max-width:1100px;margin:26px auto;padding:0 18px}.notice{background:#17233a;border:1px solid #2b4164;color:#c9d9f7;padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.5;margin-bottom:18px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}.stat,.toolbar,.token{background:linear-gradient(145deg,#131e31,#0e1727);border:1px solid var(--line);border-radius:14px}.stat{padding:16px}.stat b{display:block;font-size:25px;margin-top:5px}.stat small,.muted{color:var(--muted)}
+.toolbar{padding:14px;display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}input,select,button{font:inherit;border-radius:9px;border:1px solid var(--line);background:#0a1220;color:#edf3ff;padding:11px 12px}input{flex:1;min-width:180px}button{cursor:pointer}button:hover{border-color:var(--blue)}.tokens{display:grid;gap:10px}.token{padding:15px;display:grid;grid-template-columns:1fr auto;gap:12px}.name{font-weight:750;font-size:16px}.symbol{color:var(--green);font-weight:700}.meta{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:8px;overflow-wrap:anywhere}.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.link{color:var(--blue);text-decoration:none;font-size:12px}.empty{text-align:center;padding:42px 16px;color:var(--muted);border:1px dashed var(--line);border-radius:14px}.foot{color:var(--muted);font-size:12px;text-align:center;padding:26px 12px}
+@media(max-width:620px){.stats{grid-template-columns:repeat(3,1fr)}.stat{padding:12px 9px}.stat b{font-size:20px}.token{grid-template-columns:1fr}.actions{justify-content:flex-start}}
+</style>
+</head>
+<body>
+<header><div><div class="brand">PUMP <span>RADAR</span></div><div class="sub">SOLANA · EARLY LAUNCH MONITOR</div></div><div class="status"><i id="dot" class="dot"></i><span id="connection">Connecting to PumpPortal…</span></div></header>
+<main>
+<div class="notice"><b>Live launch feed.</b> This first version listens for new token creation events only. It does not buy or sell tokens. Trade streams are deliberately disabled because PumpPortal meters those subscriptions.</div>
+<section class="stats"><div class="stat"><small>Launches received</small><b id="total">0</b></div><div class="stat"><small>Newest launch</small><b id="latest">—</b></div><div class="stat"><small>Connection</small><b id="state" style="font-size:17px">Starting</b></div></section>
+<div class="toolbar"><input id="search" placeholder="Search token, symbol, mint or creator…" aria-label="Search launches"><select id="sort" aria-label="Sort launches"><option value="new">Newest first</option><option value="old">Oldest first</option></select><button id="clear">Clear list</button></div>
+<div id="tokens" class="tokens"><div class="empty">Waiting for the next Pump.fun token launch…</div></div>
+<div class="foot">Pump Radar is an information tool, not investment advice. A new-token event does not establish that a token is safe or profitable.</div>
+</main>
+<script>
+const WS_URL='wss://pumpportal.fun/api/data';
+const rows=[];let socket=null,retry=1500,received=0;
+const $=id=>document.getElementById(id);
+const short=s=>s&&s.length>14?s.slice(0,6)+'…'+s.slice(-5):(s||'—');
+function setStatus(label,kind){$('connection').textContent=label;$('state').textContent=label;$('dot').className='dot '+(kind||'');}
+function age(ts){let s=Math.max(0,Math.floor((Date.now()-ts)/1000));return s<60?s+'s ago':s<3600?Math.floor(s/60)+'m ago':Math.floor(s/3600)+'h ago';}
+function render(){let q=$('search').value.trim().toLowerCase();let data=rows.filter(x=>[x.name,x.symbol,x.mint,x.creator].join(' ').toLowerCase().includes(q));if($('sort').value==='old')data.reverse();$('total').textContent=received;$('latest').textContent=rows.length?age(rows[0].receivedAt):'—';$('tokens').innerHTML='';if(!data.length){$('tokens').innerHTML='<div class="empty">No matching launches yet. Keep this page open to receive new events.</div>';return;}
+for(const t of data){const el=document.createElement('article');el.className='token';const left=document.createElement('div');const name=document.createElement('div');name.className='name';name.textContent=(t.name||'Unknown token')+' ';const sym=document.createElement('span');sym.className='symbol';sym.textContent=t.symbol?'$'+t.symbol:'';name.append(sym);const meta=document.createElement('div');meta.className='meta';for(const label of ['Age: '+age(t.receivedAt),'Mint: '+short(t.mint),'Creator: '+short(t.creator)]){const span=document.createElement('span');span.textContent=label;meta.append(span)}left.append(name,meta);const actions=document.createElement('div');actions.className='actions';const copy=document.createElement('button');copy.textContent='Copy mint';copy.onclick=()=>{if(navigator.clipboard?.writeText)navigator.clipboard.writeText(t.mint);else alert(t.mint)};const link=document.createElement('a');link.className='link';link.href='https://pump.fun/coin/'+encodeURIComponent(t.mint);link.target='_blank';link.rel='noopener noreferrer';link.textContent='View on Pump.fun ↗';actions.append(copy,link);el.append(left,actions);$('tokens').append(el);}}
+function schedule(){setTimeout(connect,retry);retry=Math.min(retry*2,30000)}
+function connect(){try{socket=new WebSocket(WS_URL)}catch(e){setStatus('Connection failed — retrying','bad');schedule();return}
+socket.onopen=()=>{retry=1500;setStatus('Live','live');socket.send(JSON.stringify({method:'subscribeNewToken'}));};
+socket.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch{return}if(!d||!d.mint)return;if(rows.some(x=>x.mint===d.mint))return;rows.unshift({name:d.name||'Unknown token',symbol:d.symbol||'',mint:d.mint,creator:d.traderPublicKey||d.creator||'',receivedAt:Date.now()});if(rows.length>500)rows.pop();received++;render();};
+socket.onerror=()=>setStatus('Feed error — retrying','bad');
+socket.onclose=()=>{setStatus('Disconnected — reconnecting','bad');schedule();};}
+$('search').addEventListener('input',render);$('sort').addEventListener('change',render);$('clear').onclick=()=>{rows.length=0;received=0;render()};connect();
+</script>
+</body></html>
