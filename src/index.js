@@ -153,10 +153,20 @@ export class PumpRadarHub extends DurableObject {
   }
 
   classify(data) {
-    if (data.txType === 'create' || (data.name && data.symbol && data.mint && !data.txType)) return 'launch';
-    if (data.txType === 'migrate' || data.pool && data.mint && data.migration) return 'migration';
-    if (data.txType === 'buy' || data.txType === 'sell') return 'trade';
-    return 'event';
+  const txType = String(data.txType || '').toLowerCase();
+
+  if (txType === 'create' || (data.name && data.symbol && data.mint && !txType)) {
+    return 'launch';
+  }
+
+  if (txType === 'migrate' || (data.pool && data.mint && data.migration)) {
+    return 'migration';
+  }
+
+  if (txType === 'buy') return 'buy';
+  if (txType === 'sell') return 'sell';
+
+  return 'event';
   }
 
   sendKeys(ws, method, keys) {
