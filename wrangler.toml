@@ -14,3 +14,5 @@ class_name = "PumpRadarHub"
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["PumpRadarHub"]
+[vars]
+ALLOWED_ORIGINS = "https://pump-radar.samuelmarv.workers.dev"
