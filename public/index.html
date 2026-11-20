@@ -33,7 +33,7 @@
 <div class="foot">Pump Radar is an information tool, not investment advice. A new-token event or wallet trade does not establish that a token is safe or profitable.</div>
 </main>
 <script>
-const rows=[];let socket=null,received=0,tradeCount=0,migrationCount=0,lists={mints:[],wallets:[]};
+const rows=[];let socket=null,received=0,buyCount=0,sellCount=0,tradeCount=0,migrationCount=0,lists={mints:[],wallets:[]};
 const $=id=>document.getElementById(id);const short=s=>s&&s.length>14?s.slice(0,6)+'…'+s.slice(-5):(s||'—');
 function status(label,kind){$('connection').textContent=label;$('dot').className='dot '+(kind||'');}
 function age(ts){let s=Math.max(0,Math.floor((Date.now()-ts)/1000));return s<60?s+'s ago':s<3600?Math.floor(s/60)+'m ago':Math.floor(s/3600)+'h ago';}
