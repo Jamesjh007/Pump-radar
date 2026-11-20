@@ -10,7 +10,14 @@
 <header><div><div class="brand">PUMP <span>RADAR</span></div><div class="sub">SOLANA · EARLY LAUNCH & SELECTED TRADE MONITOR</div></div><div class="status"><i id="dot" class="dot"></i><span id="connection">Connecting…</span></div></header>
 <main>
 <div class="notice"><b>Live monitoring.</b> New-token and migration events are free. Token and wallet trade streams are metered by PumpPortal and run only for addresses you add to your private watchlists. Pump Radar does not buy or sell tokens.</div>
-<section class="stats"><div class="stat"><small>Launches received</small><b id="total">0</b></div><div class="stat"><small>Newest launch</small><b id="latest">—</b></div><div class="stat"><small>Trade events</small><b id="trades">0</b></div><div class="stat"><small>Migrations</small><b id="migrations">0</b></div></section>
+<section class="stats">
+  <div class="stat"><small>Launches received</small><b id="total">0</b></div>
+  <div class="stat"><small>Newest launch</small><b id="latest">—</b></div>
+  <div class="stat"><small>BUY events</small><b id="buys">0</b></div>
+  <div class="stat"><small>SELL events</small><b id="sells">0</b></div>
+  <div class="stat"><small>Trade events</small><b id="trades">0</b></div>
+  <div class="stat"><small>Migrations</small><b id="migrations">0</b></div>
+</section>
 <div class="toolbar"><input id="search" placeholder="Search token, symbol, mint or creator…" aria-label="Search events"><select id="filter"><option value="all">All events</option><option value="launch">Launches</option><option value="trade">Trades</option><option value="migration">Migrations</option></select><button id="clear">Clear feed</button></div>
 <div id="tokens" class="tokens"><div class="empty">Waiting for live events…</div></div>
 <section class="admin">
